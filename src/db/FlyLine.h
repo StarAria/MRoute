@@ -21,9 +21,8 @@ private:
     int                 _netId;
     int                 _startNodeId;
     int                 _endNodeId;
-    point               _start;
-    point               _end;
-    std::vector<point>  _corner;
+    std::vector<point>  _corners;
+    std::vector<int>    _edgesId;
 };
 
 #endif

@@ -20,10 +20,11 @@ private:
     int                     _id;
     int                     _templateId;
     std::string             _name;
-    point                   _originPoint;
+    point                   _bias;
     std::vector<point>      _points;
     OriType                 _ori;
     std::vector<int>        _nodesId;
+    std::vector<int>        _edgesId;
 
 public:
 

@@ -20,7 +20,7 @@ class Net
 private:
     int                     _id;
     std::vector<int>        _nodesId;
-    std::vector<FlyLine>    _flyLines;
+    std::vector<int>        _flyLinesId;
 };
 
 #endif
