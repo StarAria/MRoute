@@ -1,0 +1,33 @@
+***Synopsys***
+
+// Public cases
+
+The input file for each public case is in its corresponding directory /home/public/case*
+
+There are two additional cases, casea and caseb, these cases will NOT be counted for final score.
+
+// Checker
+
+The checker is in /home/public/checker, you should first copy it to your own directory
+
+	cp /home/public/checker /home/eda2204XX/ -rf
+
+copy both input.txt and output.txt to the checker directory
+
+	cp /XX/input.txt /home/eda2204XX/checker/input.txt
+	cp /XX/output.txt /home/eda2204XX/checker/output.txt
+
+then enter the directory and run the checker
+
+	cd /home/eda2204XX/checker
+	dist/checker
+
+Current version is 1.1
+
+// Submission
+
+1. Please prepare an executable of your code in your own directory, the executable should automatically create output.txt based on the input.txt in a FIXED RELATIVE path, WITHOUT any manual input.
+2. Please prepare a README in the same directory, containing following:
+	a) UI of your executable
+	b) Is there any dependent file/configuration if your executable was copied and tested elsewhere
+3. PLEASE ENSURE YOUR EXECUTABLE IS RUNNABLE ON THIS SERVER
