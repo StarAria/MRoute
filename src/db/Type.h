@@ -12,16 +12,6 @@
 /*! @class Point */
 typedef std::pair<double, double> point;
 
-class Edge
-{
-private:
-    std::pair<point, point>         line;
-    int                             Id;
-    int                             fId;
-    bool                            type;
-};
-
-
 /*! @enum OriType 
     @brief Type of orientation*/
 
