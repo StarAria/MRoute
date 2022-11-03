@@ -7,6 +7,7 @@
 #define __BLOCK_H__
 
 #include "Type.h"
+#include "Line.h"
 #include <string>
 #include <vector>
 
@@ -21,11 +22,8 @@ private:
     int                     _templateId;
     std::string             _name;
     point                   _bias;
-    std::vector<point>      _points;
+    std::vector<Line>       _edges;
     OriType                 _ori;
-    std::vector<int>        _nodesId;
-    std::vector<int>        _edgesId;
-
 public:
 
 };

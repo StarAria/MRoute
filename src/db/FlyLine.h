@@ -7,7 +7,7 @@
 #define __FLYLINE_H__
 
 #include "./Type.h"
-#include "./Node.h"
+#include "./Line.h"
 #include <vector>
 
 /*! @class FlyLine
@@ -18,11 +18,9 @@ class FlyLine
 {
 private:
     int                 _id;
-    int                 _netId;
-    int                 _startNodeId;
-    int                 _endNodeId;
-    std::vector<point>  _corners;
-    std::vector<int>    _edgesId;
+    point               _p1;
+    point               _p2;
+    std::vector<Line&>  _lines;
 };
 
 #endif

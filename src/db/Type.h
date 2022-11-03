@@ -19,7 +19,7 @@ private:
     int                             Id;
     int                             fId;
     bool                            type;
-}
+};
 
 
 /*! @enum OriType 
@@ -31,6 +31,14 @@ enum class OriType : std::uint8_t
     MX,
     MY,
     R180
+};
+
+enum class LineType : std::uint8_t
+{
+    EDGE,
+    FLYLINE,
+    SUS,
+    HSUS,
 };
 
 #endif
