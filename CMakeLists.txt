@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8.11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON )
-set (CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(PROJECT_NAME "MRoute")
 project(${PROJECT_NAME})
@@ -17,11 +17,7 @@ include_directories (
 
 file (GLOB SOURCES
     src/*
-    src/parser/*
     src/db/*
-    src/global/*
-    src/maze_route/*
-    src/pattern_match/*
     src/main/*
 )
 
