@@ -36,10 +36,12 @@ private:
     std::vector<Line>           hLines;
 
 public:
-    Route();
+    Route() {};
     void parser(std::string);
     void output();
-
+    bool isIntersect(Line&, Line&);
+    std::vector<Line> divIntersect(Line&, Line&);
+    bool isLegal(Line& L1, Line& L2);
 };
 
 
