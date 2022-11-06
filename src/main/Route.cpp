@@ -4,7 +4,73 @@
 
 #include "Route.h"
 
-/// @brief check if two lines intersect
+bool Route::run()
+{
+  std::vector<Line> buffer;
+  //TODO:generate biasRange and step.
+  double biasRange = 0, step = 0, bias = 0;
+  for(FlyLine & flyline : flylines)
+  {
+    //try LB shape
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::LB);
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      flyline.sortLines();
+      continue;
+    }
+    //try LU shape
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::LU);
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      flyline.sortLines();
+      continue;
+    }
+    //try H and Z shape with bias and -bias in one cycle
+    for(bias = 0; bias < biasRange; bias += step)
+    {
+      //try H shapes with bias
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, bias);
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        flyline.sortLines();
+        break;
+      }
+      //try H shapes with -bias
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, (-bias));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        flyline.sortLines();
+        break;
+      }
+      //try Z shapes with bias
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, bias);
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        flyline.sortLines();
+        break;
+      }
+      //try Z shapes with -bias
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, (-bias));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        flyline.sortLines();
+        break;
+      }
+    }
+      if(bias < biasRange)    //find solution with H or Z shape
+        continue;
+      return false;           //cannot find solution in specific range
+  }
+  return true;                //all the flylines have been routed successfully
+}
+
+
 bool Route::isIntersect(Line& L1, Line& L2)
 {
   point vLp1, vLp2, hLp1, hLp2;
@@ -32,9 +98,6 @@ bool Route::isIntersect(Line& L1, Line& L2)
   }
 }
 
-/// @brief if a block edge and a line intersect, divide the line into two
-///
-/// @warning make sure first param is a block edge while second is the line to divide 
 std::vector<Line> Route::divIntersect(Line& edge, Line& L)
 {
   point intersection;
@@ -58,7 +121,6 @@ std::vector<Line> Route::divIntersect(Line& edge, Line& L)
   return lines;
 }
 
-/// @brief check if two lines fit the constraint "d"
 bool Route::isLegal(Line& L1, Line& L2)
 {
   auto L1p1 = L1.p1();
