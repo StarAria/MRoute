@@ -46,7 +46,7 @@ public:
     void setP2(point p2) {_p2 = p2;}
     void setType(LineType type) {_type = type;}
 
-    inline bool isHorizonal() const {return approxEqual(_p1.first, _p2.first);}
+    inline bool isHorizonal() const {return approxEqual(_p1.second, _p2.second);}
 
 };
 
