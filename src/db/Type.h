@@ -38,8 +38,16 @@ enum class LineType : std::uint8_t
 {
     EDGE,
     FLYLINE,
-    SUS,
-    HSUS,
+    SUS,        //line with two suspended point
+    HSUS,       //line with one routing point and one suspended point
+};
+
+enum class Pattern : std::uint8_t
+{
+    LB,         //"L"shape with bottom line
+    LU,         //"L"shape with upper line
+    H,          //"H"shape with two vertical lines and one horizonal line
+    Z,          //"Z"shape with two horizonal lines and one vertical line
 };
 
 #endif
