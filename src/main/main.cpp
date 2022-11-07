@@ -9,16 +9,18 @@
 */
 
 #include "./Route.h"
+#include<iostream>
 
 int main(int argc, char* argv[])
 {
     Route route;
-    route.parser(std::string(argv[0]));
+    if(argc < 2) {
+        std::cout << "need an input_file" << std::endl;
+    }
+    route.parser(argv[1]);
     route.run();
-    if(argc > 1)
-        route.output(std::string(argv[1]));
-    else
-        route.output(std::string("output.txt"));
+    route.output(std::string("output.txt"));
+
     return 0;
 }
 
