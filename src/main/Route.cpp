@@ -127,7 +127,7 @@ bool Route::isLegal(Line& L1, Line& L2)
   auto L1p2 = L1.p2();
   auto L2p1 = L2.p1();
   auto L2p2 = L2.p2();
-  int d = 5;
+
   if(L1p1.first == L1p2.first) {
     // L1 is vertical
     if(L2p1.second == L2p2.second) {
@@ -138,9 +138,9 @@ bool Route::isLegal(Line& L1, Line& L2)
         return true;
       }else {
         // for point A(x1,y1) and B(x2,y2), if point C(x,y) is between A and B in Y direction projection, then (y-y1)*(y-y2) <=0
-        if((L1p1.second-L2p1.second)*(L1p1.second-L2p2.second) <= 0 || (L1p2.second-L2p1.second)*(L1p2.second-L2p2.second) <= 0)
+        if((L1p1.second-L2p1.second-d)*(L1p1.second-L2p2.second-d) <= 0 || (L1p2.second-L2p1.second)*(L1p2.second-L2p2.second-d) <= 0)
           return false;
-        if((L2p1.second-L1p1.second)*(L2p1.second-L1p2.second) <= 0 || (L2p2.second-L1p1.second)*(L2p2.second-L1p2.second) <= 0) 
+        if((L2p1.second-L1p1.second-d)*(L2p1.second-L1p2.second-d) <= 0 || (L2p2.second-L1p1.second-d)*(L2p2.second-L1p2.second-d) <= 0) 
           return false;
       }
     }
@@ -154,12 +154,25 @@ bool Route::isLegal(Line& L1, Line& L2)
         return true;
       }else {
         // for point A(x1,y1) and B(x2,y2), if point C(x,y) is between A and B in X direction projection, then (x-x1)*(x-x2) <=0
-        if((L1p1.first-L2p1.first)*(L1p1.first-L2p2.first) <= 0 || (L1p2.first-L2p1.first)*(L1p2.first-L2p2.first) <= 0) 
+        if((L1p1.first-L2p1.first-d)*(L1p1.first-L2p2.first-d) <= 0 || (L1p2.first-L2p1.first-d)*(L1p2.first-L2p2.first-d) <= 0) 
           return false;
-        if((L2p1.first-L1p1.first)*(L2p1.first-L1p2.first) <= 0 || (L2p2.first-L1p1.first)*(L2p2.first-L1p2.first) <= 0) 
+        if((L2p1.first-L1p1.first-d)*(L2p1.first-L1p2.first-d) <= 0 || (L2p2.first-L1p1.first-d)*(L2p2.first-L1p2.first-d) <= 0) 
           return false;
       }
     }
   }
+  return true;
+}
+
+bool Route::syncAndCheck(std::vector<Line>& buffer)
+{
+  for(Line &L1 : buffer) {
+    for(Line &L2 : Lines) {
+      if(isLegal(L1, L2) == 0)
+        return false;
+    }
+  }
+
+  Lines.insert(Lines.end(), buffer.begin(), buffer.end());
   return true;
 }
