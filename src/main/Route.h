@@ -29,7 +29,7 @@ private:
     double                      d, w, h;
     double                      width, height;
 
-    std::vector<BlockTemplate>  tempaltes;
+    std::vector<BlockTemplate>  templates;
     std::vector<Block>          blocks;
     std::vector<FlyLine>        flylines;
     std::vector<Line>           Lines;
