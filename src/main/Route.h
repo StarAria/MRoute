@@ -32,8 +32,7 @@ private:
     std::vector<BlockTemplate>  tempaltes;
     std::vector<Block>          blocks;
     std::vector<FlyLine>        flylines;
-    std::vector<Line>           vLines;
-    std::vector<Line>           hLines;
+    std::vector<Line>           Lines;
 
 public:
     Route() {};
