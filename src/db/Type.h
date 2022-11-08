@@ -11,6 +11,8 @@
 #include <cmath>
 
 constexpr   double      delta = 0.00001;
+constexpr   double      stepFactor = 0.60;
+constexpr   double      biasRangeFactor = 1.0;
 
 /*! @brief Check if two double numbers equal within the error range delta.*/
 inline bool approxEqual(double x, double y){return std::abs(x - y) < delta;}
