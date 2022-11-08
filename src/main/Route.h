@@ -71,6 +71,9 @@ public:
     std::vector<Line> divIntersect(Line&, Line&);
     /// @brief check if two lines fit the constraint "d"
     bool isLegal(Line& L1, Line& L2);
+    
+    ///@brief form block's edges in parser using bias and oriType
+    void blockedgeform(Block& b);
 };
 
 
