@@ -9,6 +9,7 @@
 #include "./Type.h"
 #include "./Line.h"
 #include <vector>
+#include <fstream>
 
 /*! @class FlyLine
     @brief FlyLine class for two point flyline.
@@ -63,8 +64,11 @@ public:
     bool                sortLines();
     /*! @brief Add a line to _lines vector. */
     void                addLine(Line line);
-    /*! @brief Print FlyLine info.Used for debugging. */
+    /*! @brief Print lines to file with certain format. */
+    void                printLines(std::ofstream &fp);
+    /*! @brief Sort and print FlyLine info.Used for debugging. */
     void                printFlyline() const;
+
 
 };
 

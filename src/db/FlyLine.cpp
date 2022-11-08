@@ -6,6 +6,7 @@
 #include "./FlyLine.h"
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 
 void FlyLine::setP1(point p)
 {
@@ -59,6 +60,9 @@ bool FlyLine::sortLines()
                 find = true;
                 std::swap(_lines[index1], _lines[index2]);
                 p = _lines[index1].p1();
+                //swap _p1 _p2 to fit the order 
+                _lines[index1].setP1(_lines[index1].p2());
+                _lines[index1].setP2(p);
                 break;
             }
         }
@@ -85,5 +89,18 @@ void FlyLine::printFlyline() const
     for(Line line : _lines)
         std::cout << "(" << line.p1().first << ", " << line.p1().second << ")" << "\t" << "(" << line.p2().first << ", " << line.p2().second << ")" << std::endl;
     std::cout << std::endl;
+    return;
+}
+
+void FlyLine::printLines(std::ofstream &fp)
+{
+    sortLines();
+    fp << "<" << _nodeName1 << "> {";
+    for(Line line : _lines)
+        fp << "{" << std::fixed << std::setprecision(4) << line.p1().first 
+           << " " << std::fixed << std::setprecision(4) << line.p1().second << "} ";
+    fp << "{" << std::fixed << std::setprecision(4) << _p2.first 
+       << " " << std::fixed << std::setprecision(4) << _p2.second << "}";
+    fp << "} <" << _nodeName2 << ">" << std::endl;
     return;
 }
