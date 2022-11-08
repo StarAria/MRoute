@@ -2,6 +2,13 @@
     @brief Bloc instance.
 */
 
+#ifndef __BLOCK_H__
+#define __BLOCK_H__
+
+#include "./Type.h"
+#include "./Line.h"
+#include <vector>
+
 class Block
 {
 private:
