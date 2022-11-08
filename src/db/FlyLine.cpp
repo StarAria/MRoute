@@ -21,6 +21,18 @@ void FlyLine::setP2(point p)
     return;
 }
 
+void FlyLine::setName1(std::string name)
+{
+    _nodeName1 = name;
+    return;
+}
+
+void FlyLine::setName2(std::string name)
+{
+    _nodeName2 = name;
+    return;
+}
+
 void FlyLine::setLines(std::vector<Line> lines)
 {
     _lines.assign(lines.begin(), lines.end());
