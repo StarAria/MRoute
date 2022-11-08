@@ -54,7 +54,6 @@ public:
     /// @brief flip the line according to the given block
     /// @param type block's oritype
     /// @param bias block's bias
-    /// @param reverse if reverse equals true, do a reverse flip
     /// @return the flipped line
     Line flip(OriType type, point bias);
     
