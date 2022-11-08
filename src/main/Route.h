@@ -33,6 +33,13 @@ private:
     std::vector<Block>          blocks;
     std::vector<FlyLine>        flylines;
     std::vector<Line>           Lines;
+    
+    struct Node
+    {
+        std::string     _name;
+        point           _p;
+    };
+    std::vector<Node>   nodes;
 
 public:
     Route() {};
