@@ -47,6 +47,31 @@ public:
     void setType(LineType type) {_type = type;}
 
     inline bool isHorizonal() const {return approxEqual(_p1.second, _p2.second);}
+    
+    Line(int id, point p1, point p2)//make sure p1<p2
+    {
+        _id = id;
+        if (p1.first == p2.first) //vertical
+        {
+            if (p1.second > p2.second)
+            {
+                point t;
+                t = p1;
+                p1 = p2;
+                p2 = t;
+            }
+        }
+        else//horizonal
+            if (p1.first > p2.first)
+            {
+                point t;
+                t = p1;
+                p1 = p2;
+                p2 = t;
+            }
+        _p1 = p1;
+        _p2 = p2;
+        _pId = 0;
 
 };
 
