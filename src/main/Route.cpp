@@ -139,11 +139,11 @@ bool Route::isLegal(Line& L1, Line& L2)
       return true;
     }else {
       // L1 and L2 are vertical
-      if(std::abs(L1p1.first-L2p1.first) > d) {
+      if(std::abs(L1p1.first-L2p1.first) > d || approxEqual(L1p1.first, L2p1.first)) {
         return true;
       }else {
         // for point A(x1,y1) and B(x2,y2), if point C(x,y) is between A and B in Y direction projection, then (y-y1)*(y-y2) <=0
-        if((L1p1.second-L2p1.second-d)*(L1p1.second-L2p2.second-d) <= 0 || (L1p2.second-L2p1.second)*(L1p2.second-L2p2.second-d) <= 0)
+        if((L1p1.second-L2p1.second-d)*(L1p1.second-L2p2.second-d) <= 0 || (L1p2.second-L2p1.second-d)*(L1p2.second-L2p2.second-d) <= 0)
           return false;
         if((L2p1.second-L1p1.second-d)*(L2p1.second-L1p2.second-d) <= 0 || (L2p2.second-L1p1.second-d)*(L2p2.second-L1p2.second-d) <= 0) 
           return false;
@@ -155,7 +155,7 @@ bool Route::isLegal(Line& L1, Line& L2)
       return true;
     }else {
       // L1 and L2 are horizontal
-      if(std::abs(L1p1.second-L2p1.second) > d) {
+      if(std::abs(L1p1.second-L2p1.second) > d || approxEqual(L1p1.second, L2p1.second)) {
         return true;
       }else {
         // for point A(x1,y1) and B(x2,y2), if point C(x,y) is between A and B in X direction projection, then (x-x1)*(x-x2) <=0
@@ -197,7 +197,15 @@ bool Route::syncAndCheck(vector<Line>& buffer)
   }
 
   vector<Line> tmpL(Lines);
-  
+  for(auto &line : tmpBuf) {
+    for(auto &block : blocks) {
+      if(block.judgeInside(line.p1()) && block.judgeInside(line.p2())) {
+        auto tmpL1 = line.flip(block.ori(), block.bias());
+        auto blockIds = templates[block.templateId()]._instsId;
+      }
+    }
+  }
   Lines.insert(Lines.end(), buffer.begin(), buffer.end());
   return true;
 }
+
