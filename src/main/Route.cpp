@@ -176,3 +176,182 @@ bool Route::syncAndCheck(std::vector<Line>& buffer)
   Lines.insert(Lines.end(), buffer.begin(), buffer.end());
   return true;
 }
+
+std::string tokenizer(std::string& line, const std::string& delims){
+	std::string toke;
+
+	// find the beginning position of first token
+	std::string::size_type idx_begin = line.find_first_not_of(delims);
+
+	if (idx_begin != std::string::npos) {
+		std::string::size_type idx_end = line.find_first_of(delims, idx_begin);
+
+		// last word
+		if (idx_end == std::string::npos) {
+			idx_end = line.length();
+		}
+
+		// extract the first token and erase it from the input string
+		toke = line.substr(idx_begin, idx_end - idx_begin);
+		line.erase(0, idx_end - 0);
+	} // end if
+
+	return toke;
+}
+
+void Route::blockedgeform(Block& b)
+{
+	std::vector<point> vertexes;
+	vertexes.push_back(b.bias());
+	if (b.ori() == OriType::R0) {
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first += b.bias().first;
+			p.second += b.bias().second;
+			vertexes.push_back(p);
+		}
+	}
+	else if (b.ori() == OriType::MY) {
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first = b.bias().first - p.first;
+			p.second += b.bias().second;
+			vertexes.push_back(p);
+		}
+	}
+	else if (b.ori() == OriType::MX) {
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first += b.bias().first;
+			p.second = b.bias().second - p.second;
+			vertexes.push_back(p);
+		}
+	}
+	else {//R180
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first = b.bias().first - p.first;
+			p.second = b.bias().second - p.second;
+			vertexes.push_back(p);
+		}
+	}
+	
+	for (int i = 0; i < vertexes.size() - 1; i++)
+	{
+		//Line L(0);//pid and id seem useless
+		//L.setId(Lines.size());//
+		point p1 = vertexes[i];
+		point p2 = vertexes[i + 1];
+		Line L(Lines.size(),p1, p2);
+		L.setType(LineType::EDGE);
+		b.setEdges(L);
+		Lines.push_back(L);//Synchronize to Lines
+	}
+}
+
+void Route::parser(std::string file){
+	std::ifstream ifid(file);
+	std::string line;
+	std::string delims(" \n\r<>{}\t");
+	getline(ifid,line);
+	std::string tmp;
+	tmp=tokenizer(line,delims); //<CONSTRAINTS>
+	tmp=tokenizer(line,delims);
+	w=stod(tmp);
+	tmp=tokenizer(line,delims);
+	h=stod(tmp);
+	tmp=tokenizer(line,delims);
+	d=stod(tmp);
+	getline(ifid,line); //<BLOCK>
+	getline(ifid,line);
+ 
+	while(line!="<BLOCK>")
+	{
+		BlockTemplate blocktem;
+		tmp = tokenizer(line, delims);
+		blocktem._name=tmp;
+		while ((tmp = tokenizer(line, delims)) != blocktem._name) 
+		{
+			point p;
+			p.first = stod(tmp);
+			tmp = tokenizer(line, delims);
+			p.second = stod(tmp);
+			blocktem._points.push_back(p);
+		}
+		templates.push_back(blocktem);
+		getline(ifid, line);
+	}
+	getline(ifid, line);	//<INSTANCE>
+	getline(ifid, line);
+	int blockid=0;
+	while (line != "<INSTANCE>")
+	{
+		Block block1(blockid);
+		tmp = tokenizer(line, delims);
+		block1.setName(tmp);
+		tmp = tokenizer(line, delims);
+		int i = 0;
+		for (; i < templates.size(); i++)
+			if (tmp == templates[i]._name) {
+				templates[i]._instsId.push_back(blockid);
+				blockid++;
+				break;
+			}
+		block1.setTemplateId(i);
+		tmp = tokenizer(line, delims);
+		point p;
+		p.first = stod(tmp);
+		tmp = tokenizer(line, delims);
+		p.second = stod(tmp);
+		block1.setBias(p);
+		tmp = tokenizer(line, delims);
+		block1.setOri(tmp);
+		blockedgeform(block1);
+		blocks.push_back(block1);
+		getline(ifid, line);
+	}
+
+	getline(ifid, line);	//<NODE>
+	getline(ifid, line);
+	while (line != "<NODE>")
+	{
+		Node n;
+		tmp = tokenizer(line, delims);
+		n._name = tmp;
+		tmp = tokenizer(line, delims);
+		n._p.first = stod(tmp);
+		tmp = tokenizer(line, delims);
+		n._p.second = stod(tmp);
+		nodes.push_back(n);
+		getline(ifid, line);
+	}
+	getline(ifid, line);	//<FLY_LINE>
+	getline(ifid, line);
+	while (line != "<FLY_LINE>")
+	{
+		tmp = tokenizer(line, delims);
+		point p1;
+		for(int i=0;i<nodes.size();i++)
+			if (tmp == nodes[i]._name) 
+			{
+				p1 = nodes[i]._p;
+				break;
+			}
+		tmp = tokenizer(line, delims);
+		point p2;
+		for (int i = 0; i < nodes.size(); i++)
+			if (tmp == nodes[i]._name)
+			{
+				p2 = nodes[i]._p;
+				break;
+			}
+		FlyLine fl(flylines.size(),p1,p2);
+		flylines.push_back(fl);
+		getline(ifid, line);
+	}
+	ifid.close();
+}
