@@ -11,16 +11,20 @@ using std::vector;
 bool Route::run()
 {
   vector<Line> buffer;
-  //TODO:generate biasRange and step.
-  double biasRange = 0, step = 0, bias = 0;
+  double bias;
+  double step = stepFactor * d;   //step:based on d
+  double biasRange;
   for(FlyLine & flyline : flylines)
   {
+    //biasRange:based on HPWL
+    biasRange = biasRangeFactor * 
+      (std::abs(flyline.p1().first - flyline.p2().first) + 
+       std::abs(flyline.p1().second - flyline.p2().second));
     //try LB shape
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::LB);
     if(syncAndCheck(buffer))
     {
       flyline.setLines(buffer);
-      flyline.sortLines();
       continue;
     }
     //try LU shape
@@ -28,7 +32,6 @@ bool Route::run()
     if(syncAndCheck(buffer))
     {
       flyline.setLines(buffer);
-      flyline.sortLines();
       continue;
     }
     //try H and Z shape with bias and -bias in one cycle
@@ -39,7 +42,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
       //try H shapes with -bias
@@ -47,7 +49,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
       //try Z shapes with bias
@@ -55,7 +56,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
       //try Z shapes with -bias
@@ -63,7 +63,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
     }
@@ -74,6 +73,54 @@ bool Route::run()
   return true;                //all the flylines have been routed successfully
 }
 
+std::vector<Line> genPattern(point p1, point p2, Pattern p, double bias = 0.0)
+{
+  
+  std::vector<point> buffer;
+  std::vector<Line> lines;
+  double tmp;
+  point pre;
+  //generate corner points
+  if(p == Pattern::LB)
+  {
+    if(p1.second < p2.second)
+      buffer.push_back(point(p2.first, p1.second));
+    else
+      buffer.push_back(point(p1.first, p2.second));
+  }
+  else if(p == Pattern::LU)
+  {
+    if(p1.second < p2.second)
+      buffer.push_back(point(p1.first, p2.second));
+    else
+      buffer.push_back(point(p2.first, p1.second));
+  }
+  else if(p == Pattern::H)
+  {
+    tmp = (p1.second + p2.second) / 2 + bias;
+    buffer.push_back(point(p1.first, tmp));
+    buffer.push_back(point(p2.first, tmp));
+  }
+  else if(p == Pattern::Z)
+  {
+    tmp = (p1.first + p2.first) / 2 + bias;
+    buffer.push_back(point(tmp, p1.second));
+    buffer.push_back(point(tmp, p2.second));
+  }
+
+  //generate lines
+  buffer.push_back(p2);
+  pre = p1;
+  for(point pt : buffer)
+  {
+    //id and pid unknown yet, set to -1.
+    Line line(-1, pre, pt);
+    line.setpId(-1);
+    lines.push_back(line);
+    pre = pt;
+  }
+  return lines;
+}
 
 bool Route::isIntersect(Line& L1, Line& L2)
 {
@@ -401,19 +448,11 @@ void Route::parser(std::string file)
 void Route::output(std::string file)
 {
 	std::ofstream fout(file);
-	
-	for (int i = 0; i < flylines.size(); i++)
-	{
-		fout << "<" << flylines[i].name1() << "> {";
-		fout << "{" << std::fixed << std::setprecision(4) << flylines[i].p1().first << " " << std::fixed << std::setprecision(4) << flylines[i].p1().second << "} ";
-		int size = flylines[i].lines().size() - 1;
-		for (int j=0 ; j < size; j++)
-		{
-			fout << "{" << std::fixed << std::setprecision(4) << flylines[i].lines()[j].p2().first << " " << std::fixed << std::setprecision(4) << flylines[i].lines()[j].p2().second << "} ";
-		}
-		fout << "{" << std::fixed << std::setprecision(4) << flylines[i].p2().first << " " << std::fixed << std::setprecision(4) << flylines[i].p2().second << "} <";
-		fout << flylines[i].name2() << ">\n";
-	}
+	for (FlyLine flyline : flylines)
+  {
+    flyline.sortLines();
+	  flyline.printLines(fout);
+  }
 	fout.close();
 }
 
