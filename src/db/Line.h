@@ -1,4 +1,4 @@
-/*! @file db/line.h
+/*! @file db/Line.h
     @brief Line header file.
     @date 2022/11/30
 */
@@ -25,8 +25,10 @@ private:
 
 public:
 
-    /// @brief constructor using pId
+    /// @brief constructor
+    Line() {}
     Line(int pId): _pId(pId) {}
+    Line(int id, point p1, point p2);
 
     /// @brief destructor
     ~Line() {}
@@ -41,39 +43,21 @@ public:
 
     /// these function set specific data members 
 
+    void setpId(int pId) {_pId = pId;}
     void setId(int id) {_id = id;}
     void setP1(point p1) {_p1 = p1;}
     void setP2(point p2) {_p2 = p2;}
     void setType(LineType type) {_type = type;}
 
     inline bool isHorizonal() const {return approxEqual(_p1.second, _p2.second);}
-    
-    Line(int id, point p1, point p2)//make sure p1<p2
-    {
-        _id = id;
-        if (p1.first == p2.first) //vertical
-        {
-            if (p1.second > p2.second)
-            {
-                point t;
-                t = p1;
-                p1 = p2;
-                p2 = t;
-            }
-        }
-        else//horizonal
-            if (p1.first > p2.first)
-            {
-                point t;
-                t = p1;
-                p1 = p2;
-                p2 = t;
-            }
-        _p1 = p1;
-        _p2 = p2;
-        _pId = 0;
-    }
 
+    /// @brief flip the line according to the given block
+    /// @param type block's oritype
+    /// @param bias block's bias
+    /// @param reverse if reverse equals true, do a reverse flip
+    /// @return the flipped line
+    Line flip(OriType type, point bias);
+    
 };
 
 
