@@ -213,7 +213,8 @@ bool Route::syncAndCheck(vector<Line>& buffer)
 
 
 
-std::string tokenizer(std::string& line, const std::string& delims){
+std::string tokenizer(std::string& line, const std::string& delims)
+{
 	std::string toke;
 
 	// find the beginning position of first token
@@ -290,7 +291,8 @@ void Route::blockedgeform(Block& b)
 	}
 }
 
-void Route::parser(std::string file){
+void Route::parser(std::string file)
+{
 	std::ifstream ifid(file);
 	std::string line;
 	std::string delims(" \n\r<>{}\t");
