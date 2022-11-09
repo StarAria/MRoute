@@ -50,6 +50,8 @@ enum class Pattern : std::uint8_t
     LU,         //"L"shape with upper line
     H,          //"H"shape with two vertical lines and one horizonal line
     Z,          //"Z"shape with two horizonal lines and one vertical line
+    HP,         //"H"shape with an extra horizonal lines.4 lines in total
+    ZP,         //"Z"shape with an extra vertical lines.4 lines in totla
 };
 
 #endif

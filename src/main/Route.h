@@ -61,9 +61,18 @@ public:
         @param p1 First point for routing.
         @param p2 Second point for routing.
         @param p Pattern shape with "LB", "LU", "H", "Z" as options. 
-        @param bias Vertical/Horizonal distance from midline for "H"/"Z"shape.Invalid on "LB" or "LU" shapes.
+        @param bias1 Vertical/Horizonal distance from midline for "H" "Z" "HP" "ZP "shape.Invalid on "LB" "LU" shapes.
+        @param bias2 Vertical/Horizonal distance from midline for "HP" "ZP "shape.Invalid on "LB" "LU" "H" "Z" shapes.
     */
-    std::vector<Line> genPattern(point p1, point p2, Pattern p, double bias = 0.0);
+    std::vector<Line> genPattern(point p1, point p2, Pattern p, double bias1 = 0.0, double bias2 = 0.0);
+    /// @brief try pattern match routing for horizonal flyline.
+    bool hMatchRoute(point p1, point p2, double step, double biasRange, FlyLine & flyline);
+    /// @brief try pattern match routing for vertical flyline.
+    bool vMatchRoute(point p1, point p2, double step, double biasRange, FlyLine & flyline);
+    /// @brief try pattern match routing for common flyline.
+    bool lMatchRoute(point p1, point p2, double step, double biasRange, FlyLine & flyline);
+
+    
     /*! @brief Sync for multiple instance module.
         Check with constraint "d" for all the new generateded lines.
         Return True and add lines to vLines and hLines if pass.
