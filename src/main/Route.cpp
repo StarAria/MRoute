@@ -178,6 +178,9 @@ bool Route::isLegal(Line& L1, Line& L2)
   auto L2p1 = L2.p1();
   auto L2p2 = L2.p2();
 
+  if(pointEqual(L1p1, L2p1) || pointEqual(L1p1, L2p2) || pointEqual(L1p2, L2p1) || pointEqual(L1p2, L2p2))
+    return true;
+
    // L1 is vertical
   if(approxEqual(L1p1.first, L1p2.first)) {
     // L2 is horizontal
@@ -222,6 +225,8 @@ bool Route::isLegal(Line& L1, Line& L2)
 bool Route::syncAndCheck(vector<Line>& buffer)
 {
   for(Line &L1 : buffer) {
+    if(pointLegal(L1) == 0)
+      return false;
     for(Line &L2 : Lines) {
       if(isLegal(L1, L2) == 0)
         return false;
@@ -268,8 +273,10 @@ bool Route::syncAndCheck(vector<Line>& buffer)
           Line tmpL2(-1, p1, p2);
           syncL = tmpL2.flip(blocks[id].ori(), blocks[id].bias());
 
+          if(pointLegal(syncL) == 0)
+            return false;
           for(auto tL : tmpLs) {
-            if(isLegal(syncL, tL)) {
+            if(isLegal(syncL, tL) == 0) {
               return false;
             }
           }
@@ -490,4 +497,31 @@ void Route::output(std::string file)
 	  flyline.printLines(fout);
   }
 	fout.close();
+}
+
+bool Route::pointLegal(Line& line)
+{
+  for(auto &node : nodes) {
+    point p = node._p, p1 = line.p1(), p2 = line.p2();
+
+    // horizontal
+    if(line.isHorizonal()) {
+      if(std::abs(p.second - p1.second) > d) {
+        return true;
+      }else {
+        if((p.first-p1.first)*(p.first - p2.first) <= 0)
+        return false;
+      }
+    }
+    // vertical
+    else {
+      if(std::abs(p.first - p1.first) > d) {
+        return true;
+      }else {
+        if((p.second-p1.second)*(p.second - p2.second) <= 0)
+        return false;
+      }
+    }
+  }
+  return true;
 }
