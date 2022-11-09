@@ -5,6 +5,7 @@
 #include "Route.h"
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 
 using std::vector;
 
@@ -20,6 +21,7 @@ bool Route::run()
     biasRange = biasRangeFactor * 
       (std::abs(flyline.p1().first - flyline.p2().first) + 
        std::abs(flyline.p1().second - flyline.p2().second));
+       
     //try LB shape
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::LB);
     if(syncAndCheck(buffer))
@@ -73,7 +75,7 @@ bool Route::run()
   return true;                //all the flylines have been routed successfully
 }
 
-std::vector<Line> genPattern(point p1, point p2, Pattern p, double bias = 0.0)
+std::vector<Line> Route::genPattern(point p1, point p2, Pattern p, double bias)
 {
   
   std::vector<point> buffer;
@@ -164,13 +166,7 @@ vector<Line> Route::divIntersect(Line& edge, Line& L)
     intersection.second = edge.p1().second;
   }
 
-  Line L1(L.pId()), L2(L.pId());
-
-  L1.setP1(L.p1());
-  L1.setP2(intersection);
-  L2.setP1(intersection);
-  L2.setP2(L.p2());
-
+  Line L1(-1, L.p1(), intersection), L2(-1, L.p2(), intersection);
   vector<Line> lines = {L1, L2};
   return lines;
 }
@@ -182,13 +178,14 @@ bool Route::isLegal(Line& L1, Line& L2)
   auto L2p1 = L2.p1();
   auto L2p2 = L2.p2();
 
+   // L1 is vertical
   if(approxEqual(L1p1.first, L1p2.first)) {
-    // L1 is vertical
+    // L2 is horizontal
     if(approxEqual(L2p1.second, L2p2.second)) {
       return true;
     }else {
-      // L1 and L2 are vertical
-      if(std::abs(L1p1.first-L2p1.first) > d || approxEqual(L1p1.first, L2p1.first)) {
+      // L2 is vertical
+      if(std::abs(L1p1.first-L2p1.first) > d) {
         return true;
       }else {
         // for point A(x1,y1) and B(x2,y2), if point C(x,y) is between A and B in Y direction projection, then (y-y1)*(y-y2) <=0
@@ -198,13 +195,16 @@ bool Route::isLegal(Line& L1, Line& L2)
           return false;
       }
     }
-  }else {
-    // L1 is horizontal
+    return true;
+  }
+  // L1 is horizontal
+  else {
+    // L1 is vertical
     if(approxEqual(L2p1.first, L2p2.first)) {
       return true;
     }else {
-      // L1 and L2 are horizontal
-      if(std::abs(L1p1.second-L2p1.second) > d || approxEqual(L1p1.second, L2p1.second)) {
+      // L2 is horizontal
+      if(std::abs(L1p1.second-L2p1.second) > d) {
         return true;
       }else {
         // for point A(x1,y1) and B(x2,y2), if point C(x,y) is between A and B in X direction projection, then (x-x1)*(x-x2) <=0
@@ -214,9 +214,10 @@ bool Route::isLegal(Line& L1, Line& L2)
           return false;
       }
     }
+    return true;
   }
-  return true;
 }
+
 
 bool Route::syncAndCheck(vector<Line>& buffer)
 {
@@ -232,13 +233,13 @@ bool Route::syncAndCheck(vector<Line>& buffer)
   for(auto &block : blocks) {
     for(auto &edge : block.edges()) {
 
-      for(auto it = tmpBuf.begin(); it != tmpBuf.end();) {
-        if(isIntersect(edge, *it)) {
-          auto t = divIntersect(edge, *it);
-          it = tmpBuf.erase(it);
+      for(int i = 0; i != tmpBuf.size();) {
+        if(isIntersect(edge, tmpBuf[i])) {
+          auto t = divIntersect(edge, tmpBuf[i]);
+          tmpBuf.erase(tmpBuf.begin() + i);
           tmpBuf.insert(tmpBuf.end(), t.begin(), t.end());
         }else {
-          ++it;
+          ++i;
         }
       }
 
@@ -267,15 +268,12 @@ bool Route::syncAndCheck(vector<Line>& buffer)
           Line tmpL2(-1, p1, p2);
           syncL = tmpL2.flip(blocks[id].ori(), blocks[id].bias());
 
-          int flag = 0;
           for(auto tL : tmpLs) {
             if(isLegal(syncL, tL)) {
-              flag = 1;
-              break;
+              return false;
             }
           }
-          if(flag == 0)
-            tmpLs.push_back(syncL);
+          tmpLs.push_back(syncL);
         }
       }
     }
@@ -362,12 +360,12 @@ void Route::blockedgeform(Block& b)
 		}
 	}
 	
-	for (int i = 0; i < vertexes.size() - 1; i++)
+	for (int i = 0; i < vertexes.size(); i++)
 	{
 		//Line L(0);//pid and id seem useless
 		//L.setId(Lines.size());//
 		point p1 = vertexes[i];
-		point p2 = vertexes[i + 1];
+		point p2 = vertexes[(i + 1) % vertexes.size()];
 		Line L(Lines.size(),p1, p2);
 		L.setpId(b.id());
 		L.setType(LineType::EDGE);
@@ -393,7 +391,7 @@ void Route::parser(std::string file)
 	getline(ifid,line); //<BLOCK>
 	getline(ifid,line);
  
-	while(line!="<BLOCK>")
+	while(line.substr(0, 7)!="<BLOCK>")
 	{
 		BlockTemplate blocktem;
 		tmp = tokenizer(line, delims);
@@ -412,7 +410,7 @@ void Route::parser(std::string file)
 	getline(ifid, line);	//<INSTANCE>
 	getline(ifid, line);
 	int blockid=0;
-	while (line != "<INSTANCE>")
+	while (line.substr(0, 10) != "<INSTANCE>")
 	{
 		Block block1(blockid);
 		tmp = tokenizer(line, delims);
@@ -441,7 +439,7 @@ void Route::parser(std::string file)
 
 	getline(ifid, line);	//<NODE>
 	getline(ifid, line);
-	while (line != "<NODE>")
+	while (line.substr(0, 6) != "<NODE>")
 	{
 		Node n;
 		tmp = tokenizer(line, delims);
@@ -457,7 +455,7 @@ void Route::parser(std::string file)
 	}
 	getline(ifid, line);	//<FLY_LINE>
 	getline(ifid, line);
-	while (line != "<FLY_LINE>")
+	while (line.substr(0, 10) != "<FLY_LINE>")
 	{
 		tmp = tokenizer(line, delims);
 		point p1;

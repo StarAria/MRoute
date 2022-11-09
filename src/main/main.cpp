@@ -19,7 +19,8 @@ int main(int argc, char* argv[])
         return 1;
     }
     route.parser(argv[1]);
-    route.run();
+    if(!route.run())
+        std::cout << "Failed!" << std::endl;
     route.output(std::string("output.txt"));
 
     return 0;
