@@ -30,9 +30,6 @@ public:
     Line(int pId): _pId(pId) {}
     Line(int id, point p1, point p2);
 
-    /// @brief destructor
-    ~Line() {}
-
     /// these function get specific data members 
 
     int id() const {return _id;}
