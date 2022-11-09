@@ -11,8 +11,6 @@ using std::vector;
 
 bool Route::run()
 {
-  vector<Line> buffer;
-  double bias;
   double step = stepFactor * d;   //step:based on d
   double biasRange;
   for(FlyLine & flyline : flylines)
@@ -21,66 +19,326 @@ bool Route::run()
     biasRange = biasRangeFactor * 
       (std::abs(flyline.p1().first - flyline.p2().first) + 
        std::abs(flyline.p1().second - flyline.p2().second));
-       
-    //try LB shape
-    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::LB);
-    if(syncAndCheck(buffer))
+    
+    if(approxEqual(flyline.p1().first, flyline.p2().first))
     {
-      flyline.setLines(buffer);
-      continue;
-    }
-    //try LU shape
-    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::LU);
-    if(syncAndCheck(buffer))
+      std::cout << "TRACE" << std::endl;
+      if(!hMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))     //horizonal flyline
+        return false;
+    }                       
+    else if(approxEqual(flyline.p1().second, flyline.p2().second))     //vertical flyline
     {
-      flyline.setLines(buffer);
-      continue;
+      if(!vMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))
+        return false;
     }
-    //try H and Z shape with bias and -bias in one cycle
-    for(bias = 0; bias < biasRange; bias += step)
+    else                                                               //common flyine
     {
-      //try H shapes with bias
-      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, bias);
-      if(syncAndCheck(buffer))
-      {
-        flyline.setLines(buffer);
-        break;
-      }
-      //try H shapes with -bias
-      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, (-bias));
-      if(syncAndCheck(buffer))
-      {
-        flyline.setLines(buffer);
-        break;
-      }
-      //try Z shapes with bias
-      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, bias);
-      if(syncAndCheck(buffer))
-      {
-        flyline.setLines(buffer);
-        break;
-      }
-      //try Z shapes with -bias
-      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, (-bias));
-      if(syncAndCheck(buffer))
-      {
-        flyline.setLines(buffer);
-        break;
-      }
+      if(!lMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))
+        return false;
     }
-      if(bias < biasRange)    //find solution with H or Z shape
-        continue;
-      return false;           //cannot find solution in specific range
   }
+
   return true;                //all the flylines have been routed successfully
 }
 
-std::vector<Line> Route::genPattern(point p1, point p2, Pattern p, double bias)
+bool Route::lMatchRoute(point p1, point p2, double step, double biasRange, FlyLine & flyline)
+{
+  vector<Line> buffer;
+  //try LB shape
+  buffer = genPattern(p1, p2, Pattern::LB);
+  if(syncAndCheck(buffer))
+  {
+    flyline.setLines(buffer);
+    return true;
+  }
+  //try LU shape
+  buffer = genPattern(p1, p2, Pattern::LU);
+  if(syncAndCheck(buffer))
+  {
+    flyline.setLines(buffer);
+    return true;
+  }
+  //try H and Z shape with bias and -bias, HP and ZP shape with abs(bias1)+abs(bias2)=bias in one cycle.
+  //bias = step * stepCount
+  for(int stepCount = 0; step * stepCount < biasRange; stepCount++)
+  {
+    //try H shapes with bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, step * stepCount);
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+    //try H shapes with -bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, (-step * stepCount));
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+    //try Z shapes with bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, step * stepCount);
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+    //try Z shapes with -bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, (-step * stepCount));
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+    //try HP and ZP shape with abs(bias1)+abs(bias2)=bias
+    for(int bias1Count = 0; bias1Count <= stepCount; bias1Count++)
+    {
+      //try HP pattern
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+
+      //try ZP pattern
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool Route::hMatchRoute(point p1, point p2, double step, double biasRange, FlyLine & flyline)
+{
+  vector<Line> buffer;
+  //direct link
+  buffer.clear();
+  buffer.push_back(Line(-1, p1, p2));
+  buffer[0].setpId(-1);
+  if(syncAndCheck(buffer))
+  {
+    flyline.setLines(buffer);
+    return true;
+  }
+
+  //try H shape with bias and -bias, HP and ZP shape with abs(bias1)+abs(bias2)=bias in one cycle.
+  //skip all the Z shape, H shape with bias = 0.0, HP and LP shape with bias2 = 0.0
+  //bias = step * stepCount
+  for(int stepCount = 1; step * stepCount < biasRange; stepCount++)
+  {
+    //try H shapes with bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, step * stepCount);
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+    //try H shapes with -bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, (-step * stepCount));
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+
+    //try HP and ZP shape with abs(bias1)+abs(bias2)=bias
+    for(int bias1Count = 0; bias1Count < stepCount; bias1Count++)
+    {
+      //try HP pattern
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+
+      //try ZP pattern
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool Route::vMatchRoute(point p1, point p2, double step, double biasRange, FlyLine & flyline)
+{
+  vector<Line> buffer;
+  //direct link
+  buffer.clear();
+  buffer.push_back(Line(-1, p1, p2));
+  buffer[0].setpId(-1);
+  if(syncAndCheck(buffer))
+  {
+    flyline.setLines(buffer);
+    return true;
+  }
+
+  //try Z shape with bias and -bias, HP and ZP shape with abs(bias1)+abs(bias2)=bias in one cycle.
+  //skip all the H shape, Z shape with bias = 0.0, HP and LP shape with bias1 = 0.0
+  //bias = step * stepCount
+  for(int stepCount = 1; step * stepCount < biasRange; stepCount++)
+  {
+    //try Z shapes with bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, step * stepCount);
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+    //try Z shapes with -bias
+    buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, (-step * stepCount));
+    if(syncAndCheck(buffer))
+    {
+      flyline.setLines(buffer);
+      return true;
+    }
+
+    //try HP and ZP shape with abs(bias1)+abs(bias2)=bias
+    for(int bias1Count = 1; bias1Count <= stepCount; bias1Count++)
+    {
+      //try HP pattern
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+
+      //try ZP pattern
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+      buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, -step * (stepCount - bias1Count));
+      if(syncAndCheck(buffer))
+      {
+        flyline.setLines(buffer);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+std::vector<Line> Route::genPattern(point p1, point p2, Pattern p, double bias1, double bias2)
 {
   
   std::vector<point> buffer;
   std::vector<Line> lines;
-  double tmp;
+  double tmp1, tmp2;
   point pre;
   //generate corner points
   if(p == Pattern::LB)
@@ -99,15 +357,31 @@ std::vector<Line> Route::genPattern(point p1, point p2, Pattern p, double bias)
   }
   else if(p == Pattern::H)
   {
-    tmp = (p1.second + p2.second) / 2 + bias;
-    buffer.push_back(point(p1.first, tmp));
-    buffer.push_back(point(p2.first, tmp));
+    tmp2 = (p1.second + p2.second) / 2 + bias1;
+    buffer.push_back(point(p1.first, tmp2));
+    buffer.push_back(point(p2.first, tmp2));
   }
   else if(p == Pattern::Z)
   {
-    tmp = (p1.first + p2.first) / 2 + bias;
-    buffer.push_back(point(tmp, p1.second));
-    buffer.push_back(point(tmp, p2.second));
+    tmp1 = (p1.first + p2.first) / 2 + bias1;
+    buffer.push_back(point(tmp1, p1.second));
+    buffer.push_back(point(tmp1, p2.second));
+  }
+  else if(p == Pattern::HP)
+  {
+    tmp1 = (p1.first + p2.first) / 2 + bias1;
+    tmp2 = (p1.second + p2.second) / 2 + bias2;
+    buffer.push_back(point(p1.first, tmp2));
+    buffer.push_back(point(tmp1, tmp2));
+    buffer.push_back(point(tmp1, p2.second));
+  }
+  else if(p == Pattern::ZP)
+  {
+    tmp1 = (p1.first + p2.first) / 2 + bias1;
+    tmp2 = (p1.second + p2.second) / 2 + bias2;
+    buffer.push_back(point(tmp1, p1.second));
+    buffer.push_back(point(tmp1, tmp2));
+    buffer.push_back(point(p2.first, tmp2));
   }
 
   //generate lines
