@@ -1,25 +1,50 @@
  #include "Block.h"
 
  ///@brief Judge whether a point is inside a block.If the point is inside the block, return true.
-    bool Block::judgeInside(point p) 
+    bool Block::judgeInside(point p)
+{
+    int v = 0;//Number of intersections with vertical lines
+    int k = 0;
+    double top= _edges[0].p2().second;
+    double bottom = _edges[0].p1().second;
+    for (int i = 1; i < _edges.size(); i++)
     {
-        int h=0,v=0;//Number of intersections with horizontal lines and vertical lines
-        for(int i=0;i<_edges.size();i++)
-        {
-            if(_edges[i].isHorizonal())
-            {
-                if(_edges[i].p1().first<p.first&&_edges[i].p2().first>p.first)    //we can assume p1<p2; p1,p2 needs to return reference
-                    h++;
-            }
-            else
-                if(_edges[i].p1().second<p.second&&_edges[i].p2().second>p.second)
-                    v++;
-        }
-        if(h==2&&v==2)
-                return true;
-            else
-                return false;
+        if(_edges[i].p2().second > top)
+            top = _edges[i].p2().second;
+        if (_edges[i].p1().second < bottom)
+            bottom = _edges[i].p1().second;
+
     }
+
+    for (int i = 0; i < _edges.size(); i++)
+    {
+        if (!_edges[i].isHorizonal())//vertical
+        {
+            if ((_edges[i].p1().second < p.second || approxEqual(_edges[i].p1().second, p.second)) && (_edges[i].p2().second > p.second || approxEqual(_edges[i].p2().second, p.second)))
+            {
+                if (approxEqual(p.first, _edges[i].p1().first))
+                    return true;    //point on a vertical line;
+                if (_edges[i].p2().first > p.first)
+                    v++;
+            }                
+        }
+        else
+        {
+            if (approxEqual(p.second, _edges[i].p1().second))
+            {
+                if ((_edges[i].p1().first < p.first || approxEqual(_edges[i].p1().first, p.first)) && (_edges[i].p2().first > p.first || approxEqual(_edges[i].p2().first, p.first)))
+                    return true; //point on a horizonal line
+                if (p.first < _edges[i].p1().first && p.second<top && p.second>bottom)
+                    v--;
+            }
+        }
+
+    }
+    if (v % 2 == 1)
+        return true;
+    else
+        return false;
+}
 
     /*! @brief Judge whether a line intersects the block, and retrun intersection points. If no intersections, the vector size is 0.*/
     std::vector<point> Block::judgeLineIntersect(Line l)
