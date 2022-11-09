@@ -15,7 +15,7 @@
                 if(_edges[i].p1().second<p.second&&_edges[i].p2().second>p.second)
                     v++;
         }
-        if(h%2==1&&v%2==1)
+        if(h==2&&v==2)
                 return true;
             else
                 return false;
