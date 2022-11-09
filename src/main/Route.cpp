@@ -3,22 +3,28 @@
 */
 
 #include "Route.h"
+#include <fstream>
+#include <iomanip>
 
 using std::vector;
 
 bool Route::run()
 {
   vector<Line> buffer;
-  //TODO:generate biasRange and step.
-  double biasRange = 0, step = 0, bias = 0;
+  double bias;
+  double step = stepFactor * d;   //step:based on d
+  double biasRange;
   for(FlyLine & flyline : flylines)
   {
+    //biasRange:based on HPWL
+    biasRange = biasRangeFactor * 
+      (std::abs(flyline.p1().first - flyline.p2().first) + 
+       std::abs(flyline.p1().second - flyline.p2().second));
     //try LB shape
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::LB);
     if(syncAndCheck(buffer))
     {
       flyline.setLines(buffer);
-      flyline.sortLines();
       continue;
     }
     //try LU shape
@@ -26,7 +32,6 @@ bool Route::run()
     if(syncAndCheck(buffer))
     {
       flyline.setLines(buffer);
-      flyline.sortLines();
       continue;
     }
     //try H and Z shape with bias and -bias in one cycle
@@ -37,7 +42,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
       //try H shapes with -bias
@@ -45,7 +49,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
       //try Z shapes with bias
@@ -53,7 +56,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
       //try Z shapes with -bias
@@ -61,7 +63,6 @@ bool Route::run()
       if(syncAndCheck(buffer))
       {
         flyline.setLines(buffer);
-        flyline.sortLines();
         break;
       }
     }
@@ -72,6 +73,54 @@ bool Route::run()
   return true;                //all the flylines have been routed successfully
 }
 
+std::vector<Line> genPattern(point p1, point p2, Pattern p, double bias = 0.0)
+{
+  
+  std::vector<point> buffer;
+  std::vector<Line> lines;
+  double tmp;
+  point pre;
+  //generate corner points
+  if(p == Pattern::LB)
+  {
+    if(p1.second < p2.second)
+      buffer.push_back(point(p2.first, p1.second));
+    else
+      buffer.push_back(point(p1.first, p2.second));
+  }
+  else if(p == Pattern::LU)
+  {
+    if(p1.second < p2.second)
+      buffer.push_back(point(p1.first, p2.second));
+    else
+      buffer.push_back(point(p2.first, p1.second));
+  }
+  else if(p == Pattern::H)
+  {
+    tmp = (p1.second + p2.second) / 2 + bias;
+    buffer.push_back(point(p1.first, tmp));
+    buffer.push_back(point(p2.first, tmp));
+  }
+  else if(p == Pattern::Z)
+  {
+    tmp = (p1.first + p2.first) / 2 + bias;
+    buffer.push_back(point(tmp, p1.second));
+    buffer.push_back(point(tmp, p2.second));
+  }
+
+  //generate lines
+  buffer.push_back(p2);
+  pre = p1;
+  for(point pt : buffer)
+  {
+    //id and pid unknown yet, set to -1.
+    Line line(-1, pre, pt);
+    line.setpId(-1);
+    lines.push_back(line);
+    pre = pt;
+  }
+  return lines;
+}
 
 bool Route::isIntersect(Line& L1, Line& L2)
 {
@@ -133,21 +182,13 @@ bool Route::isLegal(Line& L1, Line& L2)
   auto L2p1 = L2.p1();
   auto L2p2 = L2.p2();
 
-  // L1 is vertical
   if(approxEqual(L1p1.first, L1p2.first)) {
-    // L2 is horizontal
+    // L1 is vertical
     if(approxEqual(L2p1.second, L2p2.second)) {
       return true;
     }else {
-      // L2 is vertical
-      if(approxEqual(L1p1.first, L2p1.first)) {
-        if((L1p1.second - L2p2.second) > d || (L2p1.second - L1p2.second) >d){
-          return true;
-        }else {
-          return false;
-        }
-      }
-      if(std::abs(L1p1.first-L2p1.first) > d) {
+      // L1 and L2 are vertical
+      if(std::abs(L1p1.first-L2p1.first) > d || approxEqual(L1p1.first, L2p1.first)) {
         return true;
       }else {
         // for point A(x1,y1) and B(x2,y2), if point C(x,y) is between A and B in Y direction projection, then (y-y1)*(y-y2) <=0
@@ -156,22 +197,13 @@ bool Route::isLegal(Line& L1, Line& L2)
         if((L2p1.second-L1p1.second-d)*(L2p1.second-L1p2.second-d) <= 0 || (L2p2.second-L1p1.second-d)*(L2p2.second-L1p2.second-d) <= 0) 
           return false;
       }
-
     }
-  // L1 is horizontal
   }else {
-    // L1 is vertical
+    // L1 is horizontal
     if(approxEqual(L2p1.first, L2p2.first)) {
       return true;
     }else {
-      // L2 is horizontal
-      if(approxEqual(L1p1.second, L2p1.second)) {
-        if((L1p1.first - L2p2.first) > d || (L2p1.first - L1p2.first) >d){
-          return true;
-        }else {
-          return false;
-        }
-      }
+      // L1 and L2 are horizontal
       if(std::abs(L1p1.second-L2p1.second) > d || approxEqual(L1p1.second, L2p1.second)) {
         return true;
       }else {
@@ -264,3 +296,200 @@ bool Route::syncAndCheck(vector<Line>& buffer)
   return true;
 }
 
+
+
+std::string tokenizer(std::string& line, const std::string& delims)
+{
+	std::string toke;
+
+	// find the beginning position of first token
+	std::string::size_type idx_begin = line.find_first_not_of(delims);
+
+	if (idx_begin != std::string::npos) {
+		std::string::size_type idx_end = line.find_first_of(delims, idx_begin);
+
+		// last word
+		if (idx_end == std::string::npos) {
+			idx_end = line.length();
+		}
+
+		// extract the first token and erase it from the input string
+		toke = line.substr(idx_begin, idx_end - idx_begin);
+		line.erase(0, idx_end - 0);
+	} // end if
+
+	return toke;
+}
+
+void Route::blockedgeform(Block& b)
+{
+	std::vector<point> vertexes;
+	vertexes.push_back(b.bias());
+	if (b.ori() == OriType::R0) {
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first += b.bias().first;
+			p.second += b.bias().second;
+			vertexes.push_back(p);
+		}
+	}
+	else if (b.ori() == OriType::MY) {
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first = b.bias().first - p.first;
+			p.second += b.bias().second;
+			vertexes.push_back(p);
+		}
+	}
+	else if (b.ori() == OriType::MX) {
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first += b.bias().first;
+			p.second = b.bias().second - p.second;
+			vertexes.push_back(p);
+		}
+	}
+	else {//R180
+		for (int i = 1; i < templates[b.templateId()]._points.size(); i++)
+		{
+			point p = templates[b.templateId()]._points[i];
+			p.first = b.bias().first - p.first;
+			p.second = b.bias().second - p.second;
+			vertexes.push_back(p);
+		}
+	}
+	
+	for (int i = 0; i < vertexes.size() - 1; i++)
+	{
+		//Line L(0);//pid and id seem useless
+		//L.setId(Lines.size());//
+		point p1 = vertexes[i];
+		point p2 = vertexes[i + 1];
+		Line L(Lines.size(),p1, p2);
+		L.setpId(b.id());
+		L.setType(LineType::EDGE);
+		b.setEdges(L);
+		Lines.push_back(L);//Synchronize to Lines
+	}
+}
+
+void Route::parser(std::string file)
+{
+	std::ifstream ifid(file);
+	std::string line;
+	std::string delims(" \n\r<>{}\t");
+	getline(ifid,line);
+	std::string tmp;
+	tmp=tokenizer(line,delims); //<CONSTRAINTS>
+	tmp=tokenizer(line,delims);
+	w=stod(tmp);
+	tmp=tokenizer(line,delims);
+	h=stod(tmp);
+	tmp=tokenizer(line,delims);
+	d=stod(tmp);
+	getline(ifid,line); //<BLOCK>
+	getline(ifid,line);
+ 
+	while(line!="<BLOCK>")
+	{
+		BlockTemplate blocktem;
+		tmp = tokenizer(line, delims);
+		blocktem._name=tmp;
+		while ((tmp = tokenizer(line, delims)) != blocktem._name) 
+		{
+			point p;
+			p.first = stod(tmp);
+			tmp = tokenizer(line, delims);
+			p.second = stod(tmp);
+			blocktem._points.push_back(p);
+		}
+		templates.push_back(blocktem);
+		getline(ifid, line);
+	}
+	getline(ifid, line);	//<INSTANCE>
+	getline(ifid, line);
+	int blockid=0;
+	while (line != "<INSTANCE>")
+	{
+		Block block1(blockid);
+		tmp = tokenizer(line, delims);
+		block1.setName(tmp);
+		tmp = tokenizer(line, delims);
+		int i = 0;
+		for (; i < templates.size(); i++)
+			if (tmp == templates[i]._name) {
+				templates[i]._instsId.push_back(blockid);
+				blockid++;
+				break;
+			}
+		block1.setTemplateId(i);
+		tmp = tokenizer(line, delims);
+		point p;
+		p.first = stod(tmp);
+		tmp = tokenizer(line, delims);
+		p.second = stod(tmp);
+		block1.setBias(p);
+		tmp = tokenizer(line, delims);
+		block1.setOri(tmp);
+		blockedgeform(block1);
+		blocks.push_back(block1);
+		getline(ifid, line);
+	}
+
+	getline(ifid, line);	//<NODE>
+	getline(ifid, line);
+	while (line != "<NODE>")
+	{
+		Node n;
+		tmp = tokenizer(line, delims);
+		n._name = tmp;
+		tmp = tokenizer(line, delims);
+		n._p.first = stod(tmp);
+		tmp = tokenizer(line, delims);
+		n._p.second = stod(tmp);
+		nodes.push_back(n);
+
+
+		getline(ifid, line);
+	}
+	getline(ifid, line);	//<FLY_LINE>
+	getline(ifid, line);
+	while (line != "<FLY_LINE>")
+	{
+		tmp = tokenizer(line, delims);
+		point p1;
+		for(int i=0;i<nodes.size();i++)
+			if (tmp == nodes[i]._name) 
+			{
+				p1 = nodes[i]._p;
+				break;
+			}
+		std::string name1 = tmp;
+		tmp = tokenizer(line, delims);
+		point p2;
+		for (int i = 0; i < nodes.size(); i++)
+			if (tmp == nodes[i]._name)
+			{
+				p2 = nodes[i]._p;
+				break;
+			}
+		FlyLine fl(flylines.size(), p1, p2,name1,tmp);
+		flylines.push_back(fl);
+		getline(ifid, line);
+	}
+	ifid.close();
+}
+
+void Route::output(std::string file)
+{
+	std::ofstream fout(file);
+	for (FlyLine flyline : flylines)
+  {
+    flyline.sortLines();
+	  flyline.printLines(fout);
+  }
+	fout.close();
+}
