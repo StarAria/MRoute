@@ -25,12 +25,12 @@ bool Route::run()
     if(approxEqual(flyline.p1().first, flyline.p2().first))
     {
       std::cout << "TRACE" << std::endl;
-      if(!hMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))     //horizonal flyline
+      if(!vMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))     //horizonal flyline
         return false;
     }                       
     else if(approxEqual(flyline.p1().second, flyline.p2().second))     //vertical flyline
     {
-      if(!vMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))
+      if(!hMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))
         return false;
     }
     else                                                               //common flyine
