@@ -8,6 +8,8 @@
 #include <iostream>
 
 using std::vector;
+using std::cout;
+using std::endl;
 
 bool Route::run()
 {
@@ -46,14 +48,14 @@ bool Route::lMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
   vector<Line> buffer;
   //try LB shape
   buffer = genPattern(p1, p2, Pattern::LB);
-  if(syncAndCheck(buffer))
+  if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
   {
     flyline.setLines(buffer);
     return true;
   }
   //try LU shape
   buffer = genPattern(p1, p2, Pattern::LU);
-  if(syncAndCheck(buffer))
+  if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
   {
     flyline.setLines(buffer);
     return true;
@@ -64,28 +66,28 @@ bool Route::lMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
   {
     //try H shapes with bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, step * stepCount);
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
     }
     //try H shapes with -bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, (-step * stepCount));
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
     }
     //try Z shapes with bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, step * stepCount);
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
     }
     //try Z shapes with -bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, (-step * stepCount));
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
@@ -95,25 +97,25 @@ bool Route::lMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
     {
       //try HP pattern
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
@@ -121,25 +123,25 @@ bool Route::lMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
 
       //try ZP pattern
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
@@ -156,7 +158,7 @@ bool Route::hMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
   buffer.clear();
   buffer.push_back(Line(-1, p1, p2));
   buffer[0].setpId(-1);
-  if(syncAndCheck(buffer))
+  if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
   {
     flyline.setLines(buffer);
     return true;
@@ -169,14 +171,14 @@ bool Route::hMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
   {
     //try H shapes with bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, step * stepCount);
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
     }
     //try H shapes with -bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::H, (-step * stepCount));
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
@@ -187,25 +189,25 @@ bool Route::hMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
     {
       //try HP pattern
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
@@ -213,25 +215,25 @@ bool Route::hMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
 
       //try ZP pattern
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
@@ -248,7 +250,7 @@ bool Route::vMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
   buffer.clear();
   buffer.push_back(Line(-1, p1, p2));
   buffer[0].setpId(-1);
-  if(syncAndCheck(buffer))
+  if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
   {
     flyline.setLines(buffer);
     return true;
@@ -261,14 +263,14 @@ bool Route::vMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
   {
     //try Z shapes with bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, step * stepCount);
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
     }
     //try Z shapes with -bias
     buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::Z, (-step * stepCount));
-    if(syncAndCheck(buffer))
+    if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
     {
       flyline.setLines(buffer);
       return true;
@@ -279,25 +281,25 @@ bool Route::vMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
     {
       //try HP pattern
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::HP, -step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
@@ -305,25 +307,25 @@ bool Route::vMatchRoute(point p1, point p2, double step, double biasRange, FlyLi
 
       //try ZP pattern
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
       }
       buffer = genPattern(flyline.p1(), flyline.p2(), Pattern::ZP, -step * bias1Count, -step * (stepCount - bias1Count));
-      if(syncAndCheck(buffer))
+      if(syncAndCheck(buffer, flyline.p1(), flyline.p2()))
       {
         flyline.setLines(buffer);
         return true;
@@ -421,6 +423,9 @@ bool Route::isIntersect(Line& L1, Line& L2)
   if(approxEqual(vLp1.second, hLp1.second) || approxEqual(vLp2.second, hLp1.second))
     return false;
 
+  if(approxEqual(vLp1.first, hLp1.first) || approxEqual(vLp1.first, hLp2.first))
+    return false;
+
   if((vLp1.second-hLp1.second) * (vLp2.second-hLp1.second) < 0) {
     return true;
   }else {
@@ -496,11 +501,13 @@ bool Route::isLegal(Line& L1, Line& L2)
 }
 
 
-bool Route::syncAndCheck(vector<Line>& buffer)
+bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
 {
   for(Line &L1 : buffer) {
-    if(pointLegal(L1) == 0)
+    if(pointLegal(L1, p1, p2) == 0){
       return false;
+    }
+      
     for(Line &L2 : Lines) {
       if(isLegal(L1, L2) == 0)
         return false;
@@ -783,7 +790,7 @@ bool Route::pointLegal(Line& line)
     // horizontal
     if(line.isHorizonal()) {
       if(std::abs(p.second - p1.second) > d) {
-        return true;
+        continue;
       }else {
         if((p.first-p1.first)*(p.first - p2.first) <= 0)
         return false;
@@ -792,10 +799,41 @@ bool Route::pointLegal(Line& line)
     // vertical
     else {
       if(std::abs(p.first - p1.first) > d) {
-        return true;
+        continue;
       }else {
         if((p.second-p1.second)*(p.second - p2.second) <= 0)
         return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool Route::pointLegal(Line& line, point pt1, point pt2)
+{
+  for(auto &node : nodes) {
+    point p = node._p;
+    
+    if(pointEqual(p, pt1) || pointEqual(p, pt2))
+      continue;
+    
+    point p1 = line.p1(), p2 = line.p2();
+    // horizontal
+    if(line.isHorizonal()) {
+      if(std::abs(p.second - p1.second) > d) {
+        continue;
+      }else {
+        if((p.first-p1.first)*(p.first - p2.first) < 0 || approxEqual(p.first, p1.first) || approxEqual(p.first, p2.first))
+          return false;        
+      }
+    }
+    // vertical
+    else {
+      if(std::abs(p.first - p1.first) > d) {
+        continue;
+      }else {
+        if((p.second-p1.second)*(p.second - p2.second) < 0 || approxEqual(p.second, p1.second) || approxEqual(p.second, p2.second))
+          return false;
       }
     }
   }

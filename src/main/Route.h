@@ -79,7 +79,7 @@ public:
         Return false if not pass.
         @param buffer
     */
-    bool syncAndCheck(std::vector<Line>& buffer);
+    bool syncAndCheck(std::vector<Line>& buffer, point, point);
     /// @brief check if two lines intersect
     bool isIntersect(Line&, Line&);
     /// @brief if a block edge and a line intersect, divide the line into two
@@ -89,6 +89,7 @@ public:
     bool isLegal(Line& L1, Line& L2);
     /// @brief check if a line and all nodes fit the constraint "d"
     bool pointLegal(Line&);
+    bool pointLegal(Line&, point, point);
     ///@brief form block's edges in parser using bias and oriType
     void blockedgeform(Block& b);
 };
