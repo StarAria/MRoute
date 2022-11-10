@@ -450,7 +450,7 @@ vector<Line> Route::divIntersect(Line& edge, Line& L)
   return lines;
 }
 
-bool Route::isLegal(Line& L1, Line& L2)
+bool Route::lineLegal(Line& L1, Line& L2)
 {
   auto L1p1 = L1.p1();
   auto L1p2 = L1.p2();
@@ -509,7 +509,7 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
     }
       
     for(Line &L2 : Lines) {
-      if(isLegal(L1, L2) == 0)
+      if(lineLegal(L1, L2) == 0)
         return false;
     }
   }
@@ -557,7 +557,7 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
           if(pointLegal(syncL) == 0)
             return false;
           for(auto tL : tmpLs) {
-            if(isLegal(syncL, tL) == 0) {
+            if(lineLegal(syncL, tL) == 0) {
               return false;
             }
           }
@@ -569,7 +569,7 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
 
   for(Line &L1 : buffer) {
     for(Line &L2 : tmpLs) {
-      if(isLegal(L1, L2) == 0)
+      if(lineLegal(L1, L2) == 0)
         return false;
     }
   }

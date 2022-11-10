@@ -86,7 +86,7 @@ public:
     /// @warning make sure first param is a block edge while second is the line to divide 
     std::vector<Line> divIntersect(Line&, Line&);
     /// @brief check if two lines fit the constraint "d"
-    bool isLegal(Line& L1, Line& L2);
+    bool lineLegal(Line& L1, Line& L2);
     /// @brief check if a line and all nodes fit the constraint "d"
     bool pointLegal(Line&);
     bool pointLegal(Line&, point, point);
