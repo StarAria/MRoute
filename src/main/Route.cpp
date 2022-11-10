@@ -556,12 +556,18 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
 
           if(pointLegal(syncL) == 0)
             return false;
+          
+          int flag = 1;
           for(auto tL : tmpLs) {
             if(lineLegal(syncL, tL) == 0) {
               return false;
+            if(pointEqual(tL.p1(), syncL.p1()) && pointEqual(tL.p2(), syncL.p2()))
+              flag = 0;
             }
           }
-          tmpLs.push_back(syncL);
+          if(flag == 1) {
+            tmpLs.push_back(syncL);
+          }         
         }
       }
     }
