@@ -21,6 +21,8 @@ int main(int argc, char* argv[])
     route.parser(argv[1]);
     if(!route.run())
         std::cout << "Failed!" << std::endl;
+    else
+        std::cout << "All the flylines routed successfully!" << std::endl;
     route.output(std::string("output.txt"));
 
     return 0;
