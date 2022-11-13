@@ -24,7 +24,6 @@ bool Route::run()
     
     if(approxEqual(flyline.p1().first, flyline.p2().first))
     {
-      std::cout << "TRACE" << std::endl;
       if(!vMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))     //horizonal flyline
         return false;
     }                       
@@ -38,6 +37,7 @@ bool Route::run()
       if(!lMatchRoute(flyline.p1(), flyline.p2(), step, biasRange, flyline))
         return false;
     }
+    std::cout << "flyline " << flyline.id() << " route successfully" << std::endl;
   }
 
   return true;                //all the flylines have been routed successfully
@@ -512,6 +512,12 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
       if(lineLegal(L1, L2) == 0)
         return false;
     }
+
+    //check lines in buffer
+    for(Line &L2 : buffer) {
+      if(lineLegal(L1, L2) == 0)
+        return false;
+    }
   }
 
   // tmpBuf holds lines which can not be divided
@@ -534,7 +540,7 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
 
   vector<Line> tmpLs(Lines);
   Line syncL;
-  for(auto &line : tmpBuf) {
+  for(auto line : tmpBuf) {
     for(auto &block : blocks) {
       if(block.judgeInside(line.p1()) && block.judgeInside(line.p2())) {
         auto tmpL1 = line.flip(block.ori(), block.bias());
@@ -573,7 +579,7 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
     }
   }
 
-  for(Line &L1 : buffer) {
+  for(Line &L1 : tmpBuf) {
     for(Line &L2 : tmpLs) {
       if(lineLegal(L1, L2) == 0)
         return false;
@@ -582,6 +588,7 @@ bool Route::syncAndCheck(vector<Line>& buffer, point p1, point p2)
 
   for(Line &L : buffer){
     L.setId(static_cast<int>(tmpLs.size()));
+    L.setType(LineType::FLYLINE);
     tmpLs.push_back(L);
   }
   Lines = tmpLs;
