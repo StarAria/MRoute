@@ -101,11 +101,11 @@ public:
     ///@brief form block's edges in parser using bias and oriType
     void blockedgeform(Block& b);
 
-    std::vector<int> getNetLines(std::vector<Net> nets, int netId);
+    std::vector<int> getNetLines(std::vector<Net> & nets, int netId);
 
-    std::vector<int> getNetNodes(std::vector<Net> nets, int netId);
+    std::vector<int> getNetNodes(std::vector<Net> & nets, int netId);
 
-    bool mergeNets(std::vector<Net> nets, std::vector<Line> Lines, int netId1, int netId2);
+    bool mergeNets(std::vector<Net> & nets, std::vector<Line> & Lines, Net & net1, Net & net2);
 
 };
 
