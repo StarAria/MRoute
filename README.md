@@ -12,7 +12,7 @@ C++ Standard Library
  + cmath
 
  ## Building
- cmake 2.8.11 or higner version is needed.
+ cmake 2.8.11 or higher version is needed.
 
  + cd build
  + cmake ..
