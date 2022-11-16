@@ -19,6 +19,7 @@ class Line
 private:
     int                         _id;
     int                         _pId;
+    int                         _netId;
     point                       _p1;
     point                       _p2;
     LineType                    _type;
