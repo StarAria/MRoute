@@ -14,11 +14,7 @@
 int main(int argc, char* argv[])
 {
     Route route;
-    if(argc < 2) {
-        std::cout << "need an input_file" << std::endl;
-        return 1;
-    }
-    route.parser(argv[1]);
+    route.parser("input.txt");
     if(!route.run())
         std::cout << "Failed!" << std::endl;
     else
