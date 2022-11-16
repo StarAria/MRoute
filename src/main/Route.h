@@ -25,6 +25,18 @@ private:
         std::vector<point>      _points;
         std::vector<int>        _instsId;
     };
+    struct Net
+    {
+        int                     _id;
+        bool                    _valid = true;
+        std::vector<int>        _nodes;
+        std::vector<int>        _lines;
+    };
+    struct Node
+    {
+        std::string     _name;
+        point           _p;
+    };
     
     double                      d, w, h;
     double                      width, height;
@@ -33,13 +45,9 @@ private:
     std::vector<Block>          blocks;
     std::vector<FlyLine>        flylines;
     std::vector<Line>           Lines;
+    std::vector<Net>            nets;
+    std::vector<Node>           nodes;
     
-    struct Node
-    {
-        std::string     _name;
-        point           _p;
-    };
-    std::vector<Node>   nodes;
 
 public:
     Route() {};
@@ -92,6 +100,13 @@ public:
     bool pointLegal(Line&, point, point);
     ///@brief form block's edges in parser using bias and oriType
     void blockedgeform(Block& b);
+
+    std::vector<int> getNetLines(std::vector<Net> nets, int netId);
+
+    std::vector<int> getNetNodes(std::vector<Net> nets, int netId);
+
+    bool mergeNets(std::vector<Net> nets, std::vector<Line> Lines, int netId1, int netId2);
+
 };
 
 
